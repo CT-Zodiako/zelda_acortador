@@ -29,14 +29,39 @@ def add_zelda():
     if request.method == 'POST':
         zelda = request.form['zelda']
         zelda_corto = acortar_url(zelda)
-        print(zelda_corto)
         cursor = conn.cursor()
         cursor.execute('INSERT INTO zeldas (zelda_original, zelda_corto) VALUES (%s, %s)', (zelda,zelda_corto))
-
         conn.commit()
+        cursor.execute('SELECT id FROM zeldas WHERE zelda_original = %s', (zelda,))
+        data = cursor.fetchall()
+        id = data[0][0]
+
+        return redirect(url_for('acortar', id = id))
+        
 
 
-        return redirect(url_for('index'))
+@app.route('/acortar/<id>', methods=['GET'])
+def acortar(id):
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM zeldas WHERE id = {0}'.format(id))
+    data = cursor.fetchall()
+    return render_template('url_acortado.html', zelda = data[0], )
+
+
+@app.route("/<string:acortado>")
+def redirigir(acortado):
+
+    cursor = conn.cursor()
+    cursor.execute('SELECT zelda_original FROM zeldas WHERE zelda_corto = %s', (acortado,))
+    data = cursor.fetchall()
+    url_original = data[0][0]
+    print(url_original)
+    if url_original:
+        # Si encontramos la URL original, redirigimos al usuario a ella
+        return redirect(url_original, code=302)
+    else:
+        # Si la URL acortada no existe, se puede mostrar un mensaje de error o redirigir a una página 404
+        return "URL acortada no encontrada", 404
 
 
 

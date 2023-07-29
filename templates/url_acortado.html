@@ -1,0 +1,31 @@
+{%extends "base.html"%}
+
+
+
+{% block content %}
+
+<form action="/acortar/{{zelda.0}}" method="GET" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <div class="mb-4">
+        <input type="url" name="zelda" placeholder="https://example.com" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{zelda.1}}">
+    </div>
+    <div class="mb-4">
+        <input type="text" name="zelda_corto" placeholder="zelda corto" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" disabled readonly value="http://127.0.0.1:3001/{{zelda.2}}">
+    </div>
+    <div class="flex items-center justify-between">
+        <button type="button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full" onclick="redirigirALanding()">Limpiar</button>
+        <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full" >Acortar</button>
+    </div>
+
+
+    <script>
+        function redirigirALanding() {
+            // Redirigir al usuario a la ruta "/"
+            window.location.href = "/";
+        }
+    </script>
+
+</form>
+{% endblock %}
+
+
+
