@@ -1,4 +1,4 @@
-
+/* 
 @keyframes move {
     100% {
         transform: translate3d(0, 0, 1px) rotate(360deg);
@@ -207,4 +207,4 @@
     animation-delay: -43s;
     transform-origin: -17vw 6vh;
     box-shadow: -40vmin 0 5.489245983570665vmin currentColor;
-}
+} */
