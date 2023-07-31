@@ -1,4 +1,22 @@
-<form action="/add_zelda" method="POST">
-    <input type="url" name="zelda" placeholder="https://example.com">
-    <button type="submit">Acortar</button>
+{%extends "base.html"%}
+
+{% block content %}
+
+<form action="/add_zelda" method="POST" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <div class="mb-4">
+        <input type="url" name="zelda" placeholder="https://example.com" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+    </div>
+    <div class="mb-4">
+        <input type="text" name="zelda_corto" placeholder="zelda corto" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"  disabled readonly>
+    </div>
+    <div class="flex items-center justify-between">
+        <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">Limpiar</button>
+        <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">Acortar</button>
+    </div>
+
+   
 </form>
+{% endblock %}
+
+
+
