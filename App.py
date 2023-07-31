@@ -3,6 +3,9 @@ import psycopg2
 import hashlib
 
 
+
+
+
 app = Flask(__name__)
 
 try:
@@ -20,8 +23,12 @@ except psycopg2.Error as e:
 app.secret_key = 'mysecretkey'
 
 
+
+
 @app.route('/')
 def index():
+    ip_acceso = request.remote_addr
+    print(f"esta el la ip!!!!: {ip_acceso}")
     return render_template('index.html')
 
 @app.route('/add_zelda', methods=['POST'])
@@ -43,12 +50,12 @@ def add_zelda():
 @app.route('/acortar/<id>', methods=['GET'])
 def acortar(id):
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM zeldas WHERE id = {0}'.format(id))
+    cursor.execute('SELECT * FROM zeldas WHERE id = %s', (id,))
     data = cursor.fetchall()
     return render_template('url_acortado.html', zelda = data[0], )
 
 
-@app.route("/<string:acortado>")
+@app.route("/redirigir/<string:acortado>")
 def redirigir(acortado):
 
     cursor = conn.cursor()
