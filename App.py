@@ -1,27 +1,14 @@
-from flask import Flask, render_template, request ,redirect, url_for
-import psycopg2
+from flask import Flask, render_template, request, redirect, url_for, jsonify,render_template, abort
+from db import db
+from model import Zeldas, InfoVisitas
 import hashlib
-from flask import jsonify
-
 from requests import get
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Leahtovar2017.@localhost/zeldas_orm'
 
-try:
-    conn = psycopg2.connect(
-        host="localhost",
-        user='postgres',
-        password='Leahtovar2017.',
-        database='acortador_zeldas'
-        )
-    print("Conexión exitosa")
-except psycopg2.Error as e:
-    print("Error en la conexión: {e}")
-
-
+db.init_app(app)
 app.secret_key = 'mysecretkey'
-
-
 
 
 @app.route('/')
@@ -33,57 +20,38 @@ def add_zelda():
     if request.method == 'POST':
         zelda = request.form['zelda']
         zelda_corto = acortar_url(zelda)
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO zeldas (zelda_original, zelda_corto) VALUES (%s, %s)', (zelda,zelda_corto))
-        conn.commit()
-        cursor.execute('SELECT id FROM zeldas WHERE zelda_original = %s', (zelda,))
-        data = cursor.fetchall()
-        id = data[0][0]
 
-        return redirect(url_for('acortar', id = id))
-        
+        new_zelda = Zeldas(zelda_original=zelda, zelda_corto=zelda_corto)
+        db.session.add(new_zelda)
+        db.session.commit()
+
+        return redirect(url_for('acortar', id=new_zelda.id))
 
 
-@app.route('/acortar/<id>', methods=['GET'])
+@app.route('/acortar/<int:id>', methods=['GET'])
 def acortar(id):
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM zeldas WHERE id = %s', (id,))
-    data = cursor.fetchall()
-    return render_template('url_acortado.html', zelda = data[0], )
+    zelda = Zeldas.query.get(id)
+    if zelda:
+        return render_template('url_acortado.html', zelda=zelda)
+    else:
+        abort(404)
 
 
 @app.route("/redirigir/<string:acortado>")
 def redirigir(acortado):
-    cursor = conn.cursor()
-    cursor.execute('SELECT zelda_original, id FROM zeldas WHERE zelda_corto = %s', (acortado,))
-    data = cursor.fetchall()
-    url_original = data[0][0]
-    id_zelda = data[0][1]
-    print(data)
-    if url_original:
-
+    zelda = Zeldas.query.filter_by(zelda_corto=acortado).first()
+    if zelda:
         ip_addr = request.remote_addr
-        
-        loc = get(f'https://ipapi.co/{ip_addr}/json/')
-
+        loc = get(f'https://ipapi.co/8.8.8.8/json/')
         country_code = loc.json()['country_code']
         country_name = loc.json()['country_name']
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO info_visitas (ip_user, country_code, country_name, id_zelda) VALUES (%s, %s, %s, %s, %s)', (ip_addr,country_code,country_name,id_zelda))
-        conn.commit()
+        info_visita = InfoVisitas(ip_user=ip_addr, country_code=country_code, country_name=country_name, id_zelda=zelda.id)
+        db.session.add(info_visita)
+        db.session.commit()
 
-
-        
-        
-        return redirect(url_original, code=302)
+        return redirect(zelda.zelda_original, code=302)
     else:
-        # Si la URL acortada no existe, se puede mostrar un mensaje de error o redirigir a una página 404
-        return "URL acortada no encontrada", 404
-
-
-@app.route("/get_my_ip", methods=["GET"])
-def get_my_ip():
-    return jsonify({'ip': request.remote_addr}), 200
+        abort(404)
 
 
 
@@ -97,4 +65,6 @@ def acortar_url(url):
     return short_url
 
 if __name__ == '__main__':
-    app.run(port = 3001 , debug = True)
+    with app.app_context():
+        db.create_all()
+    app.run(port=3001, debug=True)
